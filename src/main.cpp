@@ -30,7 +30,7 @@ void SimulateLaunch(const std::string &bodyName, OrbitalBody *body)
     // === Logging Setup ===
     std::string logFileName = "flight_log_" + bodyName + ".csv";
     std::ofstream logFile(logFileName);
-    logFile << "Time (s),Altitude (m),Velocity (m/s),Mass (kg),Fuel (%),Air Density (kg/m^3),Drag Force (N),Drag Accel (m/s^2)\n";
+    logFile << "Time (s),Altitude (m),Velocity (m/s),Mass (kg),Fuel (%),Air Density (kg/m^3),Drag Force (N),Drag Accel (m/s^2),Heat Rate (W/m^2),Total Heat (J/m^2),Surface Temp (K)\n";
 
     // === Simulation Parameters ===
     const double deltaTime = 0.1;
@@ -78,7 +78,10 @@ void SimulateLaunch(const std::string &bodyName, OrbitalBody *body)
                 << rocket.GetFuelPercent() << ","
                 << rocket.GetLastAirDensity() << ","
                 << rocket.GetLastDragForce() << ","
-                << (rocket.GetLastDragForce() / rocket.GetMass()) << "\n";
+                << (rocket.GetLastDragForce() / rocket.GetMass()) << ","
+                << rocket.GetHeatRate() << ","
+                << rocket.GetTotalHeatLoad() << ","
+                << rocket.GetSurfaceTemperature() << "\n";
 
         time += deltaTime;
     }
@@ -100,6 +103,57 @@ int main()
     // === Run simulations ===
     SimulateLaunch("Earth", &earth);
     SimulateLaunch("Mars", &mars);
+
+    // === No thrust model needed (no propulsion during reentry) ===
+    ThrustModel dummyEngine(0.0, 0.0, 0.0);
+
+    // === Capsule-like vessel for reentry ===
+    double dragCoefficient = 1.25; // blunt body
+    double crossSectionArea = 5.0; // m², wide base
+
+    Vessel capsule(
+        100000.0, // Altitude: 100 km
+        -7500.0,  // Velocity: 7.5 km/s downward (typical LEO)
+        5000.0,   // Dry mass
+        0.0,      // No fuel (passive)
+        dragCoefficient,
+        crossSectionArea,
+        &earth,
+        dummyEngine);
+
+    // === Log Setup ===
+    std::ofstream logFile("reentry_test.csv");
+    logFile << "Time (s),Altitude (m),Velocity (m/s),Air Density (kg/m^3),"
+            << "Drag Force (N),Drag Accel (m/s^2),Heat Rate (W/m^2),"
+            << "Total Heat (J/m^2),Surface Temp (K)\n";
+
+    // === Sim Settings ===
+    const double deltaTime = 0.1;
+    const double maxTime = 600.0;
+    double time = 0.0;
+
+    std::cout << "🔥 Reentry simulation started...\n";
+
+    while (time <= maxTime && capsule.GetAltitude() > 0.0)
+    {
+        capsule.Update(deltaTime);
+
+        logFile << std::fixed << std::setprecision(2)
+                << time << ","
+                << capsule.GetAltitude() << ","
+                << capsule.GetVelocity() << ","
+                << capsule.GetLastAirDensity() << ","
+                << capsule.GetLastDragForce() << ","
+                << capsule.GetLastDragAcceleration() << ","
+                << capsule.GetHeatRate() << ","
+                << capsule.GetTotalHeatLoad() << ","
+                << capsule.GetSurfaceTemperature() << "\n";
+
+        time += deltaTime;
+    }
+
+    logFile.close();
+    std::cout << "✅ Reentry complete. Data saved to reentry_test.csv\n";
 
     return 0;
 }

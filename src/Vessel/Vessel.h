@@ -30,6 +30,10 @@ public:
     double GetLastAirDensity() const { return lastAirDensity; }
     double GetLastDragForce() const { return lastDragForce; }
     double GetLastDragAcceleration() const { return lastDragAcceleration; }
+    double GetSurfaceTemperature() const { return surfaceTemperature; }
+
+    double GetHeatRate() const;
+    double GetTotalHeatLoad() const;
 
 private:
     double altitudeMeters;
@@ -41,6 +45,9 @@ private:
     double crossSectionArea;
     OrbitalBody *parentBody;
     ThrustModel engine;
+    double totalHeatLoad;            // J/m²
+    double currentHeatRate;          // W/m²
+    double surfaceTemperature = 0.0; // K
 
     double lastAirDensity;
     double lastDragForce;
