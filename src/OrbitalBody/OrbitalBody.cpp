@@ -22,3 +22,8 @@ Atmosphere *OrbitalBody::GetAtmosphere() const
 {
     return atmosphere;
 }
+
+double OrbitalBody::GetRadius() const
+{
+    return radius;
+}

@@ -14,12 +14,23 @@ double Atmosphere::GetTemperature(double altitudeMeters) const
 
 double Atmosphere::GetPressure(double altitudeMeters) const
 {
-    if (altitudeMeters > 11000.0)
-        return 0.0; // troposphere cutoff
+    // Constants
+    constexpr double g = 9.80665;     // m/s²
+    constexpr double R = gasConstant; // J/mol·K
 
-    double T = GetTemperature(altitudeMeters);
-    double exponent = (9.80665 * molarMassAir) / (gasConstant * lapseRate);
-    return seaLevelPressure * std::pow(T / seaLevelTemp, exponent);
+    if (altitudeMeters <= 11000.0)
+    {
+        // Troposphere model with lapse rate
+        double T = GetTemperature(altitudeMeters);
+        double exponent = (g * molarMassAir) / (R * lapseRate);
+        return seaLevelPressure * std::pow(T / seaLevelTemp, exponent);
+    }
+    else
+    {
+        // Exponential falloff above 11 km
+        constexpr double scaleHeight = 7000.0; // Approximate for Earth
+        return seaLevelPressure * std::exp(-altitudeMeters / scaleHeight);
+    }
 }
 
 double Atmosphere::GetDensity(double altitudeMeters) const

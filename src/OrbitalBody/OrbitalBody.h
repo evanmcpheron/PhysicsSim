@@ -12,6 +12,8 @@ public:
 
     Atmosphere *GetAtmosphere() const;
 
+    double GetRadius() const;
+
 private:
     double mass;
     double radius;
