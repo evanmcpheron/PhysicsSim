@@ -12,10 +12,12 @@ public:
            double startingVelocity,
            double dryMassKg,
            double fuelMassKg,
+           double dragCoefficient,
+           double crossSectionArea,
            OrbitalBody *parentBody,
-           const ThrustModel &engineModel); // new
+           const ThrustModel &engineModel);
 
-    void Update(double deltaTime); // NEW combined step: gravity + thrust
+    void Update(double deltaTime);
 
     void SetThrottle(double throttle);
 
@@ -25,14 +27,22 @@ public:
     double GetFuelMass() const;
     double GetFuelPercent() const;
 
+    double GetLastAirDensity() const { return lastAirDensity; }
+    double GetLastDragForce() const { return lastDragForce; }
+    double GetLastDragAcceleration() const { return lastDragAcceleration; }
+
 private:
     double altitudeMeters;
     double velocityMetersPerSecond;
     double dryMassKg;
     double fuelMassKg;
     double initialFuelMassKg;
-
+    double dragCoefficient;
+    double crossSectionArea;
     OrbitalBody *parentBody;
-
     ThrustModel engine;
+
+    double lastAirDensity;
+    double lastDragForce;
+    double lastDragAcceleration;
 };

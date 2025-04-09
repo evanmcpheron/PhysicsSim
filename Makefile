@@ -4,9 +4,10 @@ CXXFLAGS = -std=c++17 -Wall \
 	-I./src/OrbitalBody \
 	-I./src/Vessel \
 	-I./src/Vector3 \
-	-I./src/ThrustModel
+	-I./src/ThrustModel \
+	-I./src/Atmosphere 
 
-SRC := $(wildcard src/*.cpp src/OrbitalBody/*.cpp src/Vessel/*.cpp src/Vector3/*.cpp src/ThrustModel/*.cpp)
+SRC := $(wildcard src/*.cpp src/OrbitalBody/*.cpp src/Vessel/*.cpp src/Vector3/*.cpp src/ThrustModel/*.cpp src/Atmosphere/*.cpp)
 TARGET = PhysicsSim
 
 all: $(TARGET)

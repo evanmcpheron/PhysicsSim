@@ -5,6 +5,8 @@ Vessel::Vessel(double startingAltitude,
                double startingVelocity,
                double dryMassKg,
                double fuelMassKg,
+               double dragCoefficient,
+               double crossSectionArea,
                OrbitalBody *parentBody,
                const ThrustModel &engineModel)
     : altitudeMeters(startingAltitude),
@@ -12,6 +14,8 @@ Vessel::Vessel(double startingAltitude,
       dryMassKg(dryMassKg),
       fuelMassKg(fuelMassKg),
       initialFuelMassKg(fuelMassKg),
+      dragCoefficient(dragCoefficient),
+      crossSectionArea(crossSectionArea),
       parentBody(parentBody),
       engine(engineModel) {}
 
@@ -20,10 +24,11 @@ Vessel::Vessel(double startingAltitude,
 // ==============================
 void Vessel::Update(double deltaTime)
 {
-    double pressure = parentBody->ComputeAtmosphericPressure(altitudeMeters);
-    double gravity = parentBody->ComputeGravitationalAcceleration(altitudeMeters);
+    double altitude = altitudeMeters;
+    double gravity = parentBody->ComputeGravitationalAcceleration(altitude);
+    double pressure = parentBody->ComputeAtmosphericPressure(altitude);
 
-    // Thrust
+    // === Thrust ===
     if (fuelMassKg > 0.0)
     {
         double thrust = engine.ComputeThrust(pressure);
@@ -35,10 +40,30 @@ void Vessel::Update(double deltaTime)
         fuelMassKg -= std::min(fuelUsed, fuelMassKg);
     }
 
-    // Gravity
+    // === Atmospheric Drag ===
+    lastAirDensity = 0.0;
+    lastDragForce = 0.0;
+    lastDragAcceleration = 0.0;
+
+    if (Atmosphere *atm = parentBody->GetAtmosphere())
+    {
+        lastAirDensity = atm->GetDensity(altitudeMeters);
+        lastDragForce = atm->ComputeDragForce(
+            altitudeMeters,
+            velocityMetersPerSecond,
+            dragCoefficient,
+            crossSectionArea);
+
+        // Drag always opposes velocity
+        lastDragAcceleration = lastDragForce / GetMass();
+        double dragDirection = (velocityMetersPerSecond > 0.0) ? -1.0 : 1.0;
+        velocityMetersPerSecond += dragDirection * lastDragAcceleration * deltaTime;
+    }
+
+    // === Gravity ===
     velocityMetersPerSecond -= gravity * deltaTime;
 
-    // Position update
+    // === Update Altitude ===
     altitudeMeters += velocityMetersPerSecond * deltaTime;
 }
 

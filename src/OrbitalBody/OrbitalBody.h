@@ -1,16 +1,19 @@
 #pragma once
+#include <Atmosphere.h>
 
 class OrbitalBody
 {
 public:
-    OrbitalBody(double massKg, double radiusMeters);
+    OrbitalBody(double massKg, double radiusMeters, Atmosphere *atmosphere = nullptr);
 
     double ComputeGravitationalAcceleration(double altitudeMeters) const;
 
-    // New: Pressure at given altitude in Pascals
     double ComputeAtmosphericPressure(double altitudeMeters) const;
+
+    Atmosphere *GetAtmosphere() const;
 
 private:
     double mass;
     double radius;
+    Atmosphere *atmosphere;
 };
