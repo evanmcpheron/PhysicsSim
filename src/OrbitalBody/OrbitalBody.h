@@ -1,13 +1,16 @@
 #pragma once
-#include <cmath>
-#include <vector>
 
-class OrbitalBody {
+class OrbitalBody
+{
 public:
-    double mass;      // kg
-    double radius;    // meters
+    OrbitalBody(double massKg, double radiusMeters);
 
-    OrbitalBody(double mass, double radius);
+    double ComputeGravitationalAcceleration(double altitudeMeters) const;
 
-    double computeGravitationalAcceleration(double altitude) const;
+    // New: Pressure at given altitude in Pascals
+    double ComputeAtmosphericPressure(double altitudeMeters) const;
+
+private:
+    double mass;
+    double radius;
 };
